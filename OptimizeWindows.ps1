@@ -6,9 +6,32 @@ Add-Type -AssemblyName PresentationCore
 $XAML = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Windows Optimization Tool" Height="800" Width="1000" Background="#2D2D30" WindowStartupLocation="CenterScreen">
+        Title="Windows Optimization Tool" Height="800" Width="1000" Background="#1E1E2D" WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <Style x:Key="ButtonStyle" TargetType="Button">
+        <Style x:Key="SidebarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#007ACC"/>
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="0" Color="Cyan"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="MainButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#3E3E42"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -18,7 +41,7 @@ $XAML = @"
             <Setter Property="BorderThickness" Value="2"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Width" Value="200"/>
+            <Setter Property="Width" Value="300"/>
             <Setter Property="Height" Value="60"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
@@ -40,21 +63,35 @@ $XAML = @"
             <Setter Property="Margin" Value="10"/>
         </Style>
     </Window.Resources>
-    <Grid Margin="10">
-        <TextBlock Text="Windows Optimization Tool" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="30" Foreground="White" Margin="0,10,0,0"/>
-        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button x:Name="OptimizePerformance" Content="Optimize Performance" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="OptimizeNetwork" Content="Optimize Network" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="OneClickOptimize" Content="One-Click Optimization" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="InstallPopularApps" Content="Install Popular Apps" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="TestWiFiSpeed" Content="Test WiFi Speed" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="StressTestPC" Content="Stress Test PC" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="SetWallpaper" Content="Set Wallpaper" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="UpdateDrivers" Content="Update Drivers" Style="{StaticResource ButtonStyle}"/>
-            <Button x:Name="AISystemScan" Content="AI System Scan" Style="{StaticResource ButtonStyle}"/>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Background="#2D2D30" Grid.Column="0">
+            <TextBlock Text="Windows Optimization Tool" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="10"/>
+            <Button x:Name="Dashboard" Content="Dashboard" Style="{StaticResource SidebarButtonStyle}"/>
+            <Button x:Name="Performance" Content="Performance" Style="{StaticResource SidebarButtonStyle}"/>
+            <Button x:Name="Network" Content="Network" Style="{StaticResource SidebarButtonStyle}"/>
+            <Button x:Name="Security" Content="Security" Style="{StaticResource SidebarButtonStyle}"/>
+            <Button x:Name="Privacy" Content="Privacy" Style="{StaticResource SidebarButtonStyle}"/>
+            <Button x:Name="Settings" Content="Settings" Style="{StaticResource SidebarButtonStyle}"/>
         </StackPanel>
-        <TextBlock x:Name="WiFiSpeedResult" Style="{StaticResource TextStyle}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Hidden"/>
+        <Grid Grid.Column="1" Margin="20">
+            <TextBlock x:Name="MainTitle" Text="Dashboard" Style="{StaticResource TextStyle}" FontSize="30"/>
+            <StackPanel x:Name="ContentPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button x:Name="OptimizePerformance" Content="Optimize Performance" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="OptimizeNetwork" Content="Optimize Network" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="OneClickOptimize" Content="One-Click Optimization" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="InstallPopularApps" Content="Install Popular Apps" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="TestWiFiSpeed" Content="Test WiFi Speed" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="StressTestPC" Content="Stress Test PC" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="SetWallpaper" Content="Set Wallpaper" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="UpdateDrivers" Content="Update Drivers" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="AISystemScan" Content="AI System Scan" Style="{StaticResource MainButtonStyle}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
 "@
@@ -363,6 +400,43 @@ $window.FindName("SetWallpaper").Add_Click({ Set-Wallpaper })
 $window.FindName("AdvancedCleaning").Add_Click({ Advanced-Cleaning })
 $window.FindName("UpdateDrivers").Add_Click({ Update-Drivers })
 $window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
+$window.FindName("Dashboard").Add_Click({ Show-Dashboard })
+$window.FindName("Performance").Add_Click({ Show-Performance })
+$window.FindName("Network").Add_Click({ Show-Network })
+$window.FindName("Security").Add_Click({ Show-Security })
+$window.FindName("Privacy").Add_Click({ Show-Privacy })
+$window.FindName("Settings").Add_Click({ Show-Settings })
+
+# Function to show different sections (add these functions)
+function Show-Dashboard {
+    $window.FindName("MainTitle").Text = "Dashboard"
+    # Update the content accordingly
+}
+
+function Show-Performance {
+    $window.FindName("MainTitle").Text = "Performance"
+    # Update the content accordingly
+}
+
+function Show-Network {
+    $window.FindName("MainTitle").Text = "Network"
+    # Update the content accordingly
+}
+
+function Show-Security {
+    $window.FindName("MainTitle").Text = "Security"
+    # Update the content accordingly
+}
+
+function Show-Privacy {
+    $window.FindName("MainTitle").Text = "Privacy"
+    # Update the content accordingly
+}
+
+function Show-Settings {
+    $window.FindName("MainTitle").Text = "Settings"
+    # Update the content accordingly
+}
 
 # Show the window
 $window.ShowDialog()
