@@ -118,21 +118,13 @@ function Invoke-ChatGPT {
         [string]$Prompt
     )
 
-    $url = "https://api.openai.com/v1/completions"
-    $apiKey = "YOUR_OPENAI_API_KEY"  # Replace with your actual API key
+    $url = "http://127.0.0.1:5000/chatgpt"
     $body = @{
-        model = "text-davinci-003"
         prompt = $Prompt
-        max_tokens = 1000
     } | ConvertTo-Json
 
-    $headers = @{
-        "Content-Type" = "application/json"
-        "Authorization" = "Bearer $apiKey"
-    }
-
-    $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -Headers $headers
-    return $response.choices[0].text
+    $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
+    return $response
 }
 
 # Function to perform AI System Scan
