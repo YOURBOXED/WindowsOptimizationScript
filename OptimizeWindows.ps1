@@ -1,7 +1,3 @@
-# Load the required assemblies
-Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName PresentationCore
-
 # Define the XAML for the WPF GUI
 $XAML = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -109,6 +105,13 @@ $XAML = @"
 $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]$XAML)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# Ensure all UI elements are found
+$AISystemScanButton = $window.FindName("AISystemScan")
+if ($null -eq $AISystemScanButton) {
+    Write-Host "Error: AISystemScan button not found in XAML" -ForegroundColor Red
+    return
+}
+
 # Global variable to store the folder path for app installations
 $global:AppInstallFolder = "C:\DefaultFolder"
 
@@ -138,6 +141,15 @@ function Perform-AISystemScan {
     $window.FindName("OptimizationGrade").Foreground = $color
 
     [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+}
+
+# Ensure all required UI elements exist
+$requiredElements = @("OptimizePerformance", "OptimizeNetwork", "OneClickOptimize", "InstallPopularApps", "TestWiFiSpeed", "StressTestPC", "SetWallpaper", "AdvancedCleaning", "UpdateDrivers", "SortFiles", "CorrectTimeZone", "UndoOptimizations")
+foreach ($element in $requiredElements) {
+    if ($null -eq $window.FindName($element)) {
+        Write-Host "Error: $element button not found in XAML" -ForegroundColor Red
+        return
+    }
 }
 
 # Function to download required tools
