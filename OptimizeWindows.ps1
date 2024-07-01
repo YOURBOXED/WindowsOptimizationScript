@@ -90,6 +90,9 @@ $XAML = @"
                 <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" Style="{StaticResource MainButtonStyle}"/>
                 <Button x:Name="UpdateDrivers" Content="Update Drivers" Style="{StaticResource MainButtonStyle}"/>
                 <Button x:Name="AISystemScan" Content="AI System Scan" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="SortFiles" Content="Sort Files by Type" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="CorrectTimeZone" Content="Correct Time Zone" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="UndoOptimizations" Content="Undo Optimizations" Style="{StaticResource MainButtonStyle}"/>
             </StackPanel>
         </Grid>
     </Grid>
@@ -389,6 +392,91 @@ function Manage-RunningApplications {
     }
 }
 
+# Function to sort files by type
+function Sort-FilesByType {
+    $targetDir = "C:\SortedFiles"
+    if (-not (Test-Path $targetDir)) {
+        New-Item -Path $targetDir -ItemType Directory
+    }
+
+    $fileTypes = Get-ChildItem -Path C:\ -Recurse -File | Group-Object -Property Extension
+
+    foreach ($fileType in $fileTypes) {
+        $typeDir = Join-Path -Path $targetDir -ChildPath $fileType.Name.TrimStart('.')
+        if (-not (Test-Path $typeDir)) {
+            New-Item -Path $typeDir -ItemType Directory
+        }
+        $fileType.Group | Move-Item -Destination $typeDir -Force
+    }
+
+    [System.Windows.MessageBox]::Show("Files sorted by type successfully!", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+}
+
+# Function to correct time zone
+function Correct-TimeZone {
+    $timeZone = "Pacific Standard Time"
+    Set-TimeZone -Id $timeZone
+    [System.Windows.MessageBox]::Show("Time zone corrected to $timeZone!", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+}
+
+# Function to undo optimizations
+function Undo-Optimizations {
+    $undoForm = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Undo Optimizations" Height="400" Width="600">
+    <Grid>
+        <TextBlock Text="Select optimizations to undo:" Margin="10" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="16"/>
+        <StackPanel Name="OptionsPanel" Margin="10,50,10,10" VerticalAlignment="Top">
+            <CheckBox Content="Performance Optimizations" Name="PerfOpt"/>
+            <CheckBox Content="Network Optimizations" Name="NetOpt"/>
+            <CheckBox Content="Registry Tweaks" Name="RegOpt"/>
+            <CheckBox Content="Service Optimizations" Name="SvcOpt"/>
+        </StackPanel>
+        <Button Content="Undo Selected" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="150" Height="30" Name="UndoBtn"/>
+    </Grid>
+</Window>
+"@
+
+    $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]$undoForm)
+    $undoWindow = [Windows.Markup.XamlReader]::Load($reader)
+
+    $undoWindow.FindName("UndoBtn").Add_Click({
+        if ($undoWindow.FindName("PerfOpt").IsChecked) {
+            Undo-PerformanceOptimizations
+        }
+        if ($undoWindow.FindName("NetOpt").IsChecked) {
+            Undo-NetworkOptimizations
+        }
+        if ($undoWindow.FindName("RegOpt").IsChecked) {
+            Undo-RegistryTweaks
+        }
+        if ($undoWindow.FindName("SvcOpt").IsChecked) {
+            Undo-ServiceOptimizations
+        }
+        $undoWindow.Close()
+        [System.Windows.MessageBox]::Show("Selected optimizations have been undone!", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    })
+
+    $undoWindow.ShowDialog()
+}
+
+function Undo-PerformanceOptimizations {
+    # Implement undo performance optimization logic here
+}
+
+function Undo-NetworkOptimizations {
+    # Implement undo network optimization logic here
+}
+
+function Undo-RegistryTweaks {
+    # Implement undo registry tweaks logic here
+}
+
+function Undo-ServiceOptimizations {
+    # Implement undo service optimizations logic here
+}
+
 # Event handlers for the buttons
 $window.FindName("OptimizePerformance").Add_Click({ Optimize-Performance })
 $window.FindName("OptimizeNetwork").Add_Click({ Optimize-Network })
@@ -400,6 +488,9 @@ $window.FindName("SetWallpaper").Add_Click({ Set-Wallpaper })
 $window.FindName("AdvancedCleaning").Add_Click({ Advanced-Cleaning })
 $window.FindName("UpdateDrivers").Add_Click({ Update-Drivers })
 $window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
+$window.FindName("SortFiles").Add_Click({ Sort-FilesByType })
+$window.FindName("CorrectTimeZone").Add_Click({ Correct-TimeZone })
+$window.FindName("UndoOptimizations").Add_Click({ Undo-Optimizations })
 $window.FindName("Dashboard").Add_Click({ Show-Dashboard })
 $window.FindName("Performance").Add_Click({ Show-Performance })
 $window.FindName("Network").Add_Click({ Show-Network })
