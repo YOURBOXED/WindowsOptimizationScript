@@ -1,3 +1,8 @@
+# Load the required assemblies
+Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationCore
+Add-Type -AssemblyName WindowsBase
+
 # Define the XAML for the WPF GUI
 $XAML = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -106,9 +111,9 @@ $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]$XAML)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
 # Ensure all UI elements are found
-$AISystemScanButton = $window.FindName("AISystemScan")
+$AISystemScanButton = $window.FindName("RunAIScan")
 if ($null -eq $AISystemScanButton) {
-    Write-Host "Error: AISystemScan button not found in XAML" -ForegroundColor Red
+    Write-Host "Error: RunAIScan button not found in XAML" -ForegroundColor Red
     return
 }
 
