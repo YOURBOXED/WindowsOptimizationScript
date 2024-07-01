@@ -117,14 +117,14 @@ function Invoke-ChatGPT {
         [string]$Prompt
     )
 
-    $url = "http://127.0.0.1:5000/chatgpt"  # Update with your server's URL if different
+    $url = "http://127.0.0.1:5000/chatgpt"
     $body = @{
         prompt = $Prompt
     } | ConvertTo-Json
 
     try {
         $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
-        return $response
+        return $response.text
     } catch {
         Write-Host "Error: $_"
         return $null
@@ -148,7 +148,6 @@ function Perform-AISystemScan {
         [System.Windows.MessageBox]::Show("AI System Scan failed. Please try again.", "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
     }
 }
-
 # Event handlers for the buttons
 $window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
 
