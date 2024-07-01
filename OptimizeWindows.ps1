@@ -86,7 +86,7 @@ $XAML = @"
                 <TextBlock x:Name="SystemSpecs" Style="{StaticResource TextStyle}" Text="System Specs: Loading..."/>
                 <TextBlock x:Name="SystemTemp" Style="{StaticResource TextStyle}" Text="System Temperature: Loading..."/>
                 <TextBlock x:Name="OptimizationGrade" Style="{StaticResource TextStyle}" Text="System Optimization Grade: Loading..."/>
-                <Button x:Name="RunAIScan" Content="Run AI System Scan" Style="{StaticResource MainButtonStyle}"/>
+                <Button x:Name="AISystemScan" Content="Run AI System Scan" Style="{StaticResource MainButtonStyle}"/>
 
                 <!-- Other Functionality -->
                 <Button x:Name="OptimizePerformance" Content="Optimize Performance" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
@@ -130,16 +130,6 @@ function Invoke-ChatGPT {
         return $null
     }
 }
-# Additional functions used in the script
-function Remove-Bloatware {
-    param (
-        [string[]]$AppsToRemove
-    )
-    foreach ($app in $AppsToRemove) {
-        Get-AppxPackage -AllUsers | Where-Object Name -like "*$app*" | Remove-AppxPackage
-        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like "*$app*" | Remove-AppxProvisionedPackage -Online
-    }
-}
 
 # Function to perform AI System Scan
 function Perform-AISystemScan {
@@ -149,13 +139,27 @@ function Perform-AISystemScan {
     if ($aiResponse -ne $null) {
         $grade = "Good" # For demo purposes, replace this with actual logic to determine the grade
         $color = "Green" # Adjust based on the grade
-        $window.FindName("RunAIScan").Add_Click({ Perform-AISystemScan })
+
         $window.FindName("OptimizationGrade").Text = "System Optimization Grade: $grade"
         $window.FindName("OptimizationGrade").Foreground = $color
 
         [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
     } else {
         [System.Windows.MessageBox]::Show("AI System Scan failed. Please try again.", "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
+    }
+}
+
+# Event handlers for the buttons
+$window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
+
+# Additional functions used in the script
+function Remove-Bloatware {
+    param (
+        [string[]]$AppsToRemove
+    )
+    foreach ($app in $AppsToRemove) {
+        Get-AppxPackage -AllUsers | Where-Object Name -like "*$app*" | Remove-AppxPackage
+        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like "*$app*" | Remove-AppxProvisionedPackage -Online
     }
 }
 
@@ -530,7 +534,7 @@ function Show-Dashboard {
     $window.FindName("SystemSpecs").Visibility = "Visible"
     $window.FindName("SystemTemp").Visibility = "Visible"
     $window.FindName("OptimizationGrade").Visibility = "Visible"
-    $window.FindName("RunAIScan").Visibility = "Visible"
+    $window.FindName("AISystemScan").Visibility = "Visible"
 }
 
 function Show-Performance {
