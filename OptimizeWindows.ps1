@@ -80,19 +80,25 @@ $XAML = @"
         <Grid Grid.Column="1" Margin="20">
             <TextBlock x:Name="MainTitle" Text="Dashboard" Style="{StaticResource TextStyle}" FontSize="30"/>
             <StackPanel x:Name="ContentPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Button x:Name="OptimizePerformance" Content="Optimize Performance" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="OptimizeNetwork" Content="Optimize Network" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="OneClickOptimize" Content="One-Click Optimization" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="InstallPopularApps" Content="Install Popular Apps" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="TestWiFiSpeed" Content="Test WiFi Speed" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="StressTestPC" Content="Stress Test PC" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="SetWallpaper" Content="Set Wallpaper" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="UpdateDrivers" Content="Update Drivers" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="AISystemScan" Content="AI System Scan" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="SortFiles" Content="Sort Files by Type" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="CorrectTimeZone" Content="Correct Time Zone" Style="{StaticResource MainButtonStyle}"/>
-                <Button x:Name="UndoOptimizations" Content="Undo Optimizations" Style="{StaticResource MainButtonStyle}"/>
+                <!-- Dashboard Content -->
+                <TextBlock x:Name="SystemSpecs" Style="{StaticResource TextStyle}" Text="System Specs: Loading..."/>
+                <TextBlock x:Name="SystemTemp" Style="{StaticResource TextStyle}" Text="System Temperature: Loading..."/>
+                <TextBlock x:Name="OptimizationGrade" Style="{StaticResource TextStyle}" Text="System Optimization Grade: Loading..."/>
+                <Button x:Name="RunAIScan" Content="Run AI System Scan" Style="{StaticResource MainButtonStyle}"/>
+
+                <!-- Other Functionality -->
+                <Button x:Name="OptimizePerformance" Content="Optimize Performance" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="OptimizeNetwork" Content="Optimize Network" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="OneClickOptimize" Content="One-Click Optimization" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="InstallPopularApps" Content="Install Popular Apps" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="TestWiFiSpeed" Content="Test WiFi Speed" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="StressTestPC" Content="Stress Test PC" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="SetWallpaper" Content="Set Wallpaper" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="UpdateDrivers" Content="Update Drivers" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="SortFiles" Content="Sort Files by Type" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="CorrectTimeZone" Content="Correct Time Zone" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
+                <Button x:Name="UndoOptimizations" Content="Undo Optimizations" Style="{StaticResource MainButtonStyle}" Visibility="Collapsed"/>
             </StackPanel>
         </Grid>
     </Grid>
@@ -112,19 +118,33 @@ function Invoke-ChatGPT {
         [string]$Prompt
     )
 
-    $url = "http://localhost:5000/chatgpt"
+    $url = "https://api.openai.com/v1/completions"
+    $apiKey = "YOUR_OPENAI_API_KEY"  # Replace with your actual API key
     $body = @{
+        model = "text-davinci-003"
         prompt = $Prompt
+        max_tokens = 1000
     } | ConvertTo-Json
 
-    $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
-    return $response.response
+    $headers = @{
+        "Content-Type" = "application/json"
+        "Authorization" = "Bearer $apiKey"
+    }
+
+    $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -Headers $headers
+    return $response.choices[0].text
 }
 
 # Function to perform AI System Scan
 function Perform-AISystemScan {
     $prompt = "Perform a system scan and provide recommendations for optimizing performance."
     $aiResponse = Invoke-ChatGPT -Prompt $prompt
+    $grade = "Good" # For demo purposes, replace this with actual logic to determine the grade
+    $color = "Green" # Adjust based on the grade
+
+    $window.FindName("OptimizationGrade").Text = "System Optimization Grade: $grade"
+    $window.FindName("OptimizationGrade").Foreground = $color
+
     [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 }
 
@@ -501,32 +521,47 @@ $window.FindName("Settings").Add_Click({ Show-Settings })
 # Function to show different sections (add these functions)
 function Show-Dashboard {
     $window.FindName("MainTitle").Text = "Dashboard"
-    # Update the content accordingly
+    $window.FindName("ContentPanel").Children | ForEach-Object { $_.Visibility = "Collapsed" }
+    $window.FindName("SystemSpecs").Visibility = "Visible"
+    $window.FindName("SystemTemp").Visibility = "Visible"
+    $window.FindName("OptimizationGrade").Visibility = "Visible"
+    $window.FindName("RunAIScan").Visibility = "Visible"
 }
 
 function Show-Performance {
     $window.FindName("MainTitle").Text = "Performance"
-    # Update the content accordingly
+    $window.FindName("ContentPanel").Children | ForEach-Object { $_.Visibility = "Collapsed" }
+    $window.FindName("OptimizePerformance").Visibility = "Visible"
+    $window.FindName("OneClickOptimize").Visibility = "Visible"
 }
 
 function Show-Network {
     $window.FindName("MainTitle").Text = "Network"
-    # Update the content accordingly
+    $window.FindName("ContentPanel").Children | ForEach-Object { $_.Visibility = "Collapsed" }
+    $window.FindName("OptimizeNetwork").Visibility = "Visible"
+    $window.FindName("TestWiFiSpeed").Visibility = "Visible"
 }
 
 function Show-Security {
     $window.FindName("MainTitle").Text = "Security"
-    # Update the content accordingly
+    $window.FindName("ContentPanel").Children | ForEach-Object { $_.Visibility = "Collapsed" }
+    $window.FindName("AdvancedCleaning").Visibility = "Visible"
+    $window.FindName("UpdateDrivers").Visibility = "Visible"
 }
 
 function Show-Privacy {
     $window.FindName("MainTitle").Text = "Privacy"
-    # Update the content accordingly
+    $window.FindName("ContentPanel").Children | ForEach-Object { $_.Visibility = "Collapsed" }
+    $window.FindName("AISystemScan").Visibility = "Visible"
 }
 
 function Show-Settings {
     $window.FindName("MainTitle").Text = "Settings"
-    # Update the content accordingly
+    $window.FindName("ContentPanel").Children | ForEach-Object { $_.Visibility = "Collapsed" }
+    $window.FindName("SetWallpaper").Visibility = "Visible"
+    $window.FindName("SortFiles").Visibility = "Visible"
+    $window.FindName("CorrectTimeZone").Visibility = "Visible"
+    $window.FindName("UndoOptimizations").Visibility = "Visible"
 }
 
 # Show the window
