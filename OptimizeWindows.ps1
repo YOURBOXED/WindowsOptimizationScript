@@ -20,6 +20,8 @@ $XAML = @"
         <Button x:Name="BatteryOptimization" Content="Battery Optimization" HorizontalAlignment="Center" VerticalAlignment="Top" Width="360" Height="50" Margin="0,210,0,0" />
         <Button x:Name="SystemHealth" Content="System Health Monitoring" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="180" Height="50" Margin="10,0,0,240" />
         <Button x:Name="Backup" Content="Automatic Backup" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="180" Height="50" Margin="0,0,10,240" />
+        <Button x:Name="AISystemScan" Content="AI System Scan" HorizontalAlignment="Center" VerticalAlignment="Top" Width="360" Height="50" Margin="0,280,0,0" />
+
     </Grid>
 </Window>
 "@
@@ -27,6 +29,28 @@ $XAML = @"
 # Parse the XAML to create the GUI
 $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]$XAML)
 $window = [Windows.Markup.XamlReader]::Load($reader)
+
+# Function to call the ChatGPT API
+function Invoke-ChatGPT {
+    param (
+        [string]$Prompt
+    )
+
+    $url = "http://localhost:5000/chatgpt"
+    $body = @{
+        prompt = $Prompt
+    } | ConvertTo-Json
+
+    $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
+    return $response.response
+}
+
+# Function to perform AI System Scan
+function Perform-AISystemScan {
+    $prompt = "Perform a system scan and provide recommendations for optimizing performance."
+    $aiResponse = Invoke-ChatGPT -Prompt $prompt
+    [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+}
 
 # Global variable to store the folder path for app installations
 $global:AppInstallFolder = "C:\DefaultFolder"
@@ -251,6 +275,8 @@ $window.FindName("UpdateDrivers").Add_Click({ Update-Drivers })
 $window.FindName("BatteryOptimization").Add_Click({ Battery-Optimization })
 $window.FindName("SystemHealth").Add_Click({ System-Health })
 $window.FindName("Backup").Add_Click({ Automatic-Backup })
+# Add a button in the UI for AI System Scan
+$window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
 
 # Show the window
 $window.ShowDialog()
