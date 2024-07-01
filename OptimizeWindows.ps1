@@ -3,7 +3,7 @@ Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName PresentationCore
 Add-Type -AssemblyName WindowsBase
 
-# Define the XAML for the WPF GUI
+# Define the XAML for the WPF GUI with enhanced UI and logo
 $XAML = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -70,6 +70,7 @@ $XAML = @"
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <StackPanel Background="#2D2D30" Grid.Column="0">
+            <Image Source="C:\path\to\your\logo.png" Width="150" Height="150" Margin="10" HorizontalAlignment="Center"/>
             <TextBlock Text="Windows Optimization Tool" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="10"/>
             <Button x:Name="Dashboard" Content="Dashboard" Style="{StaticResource SidebarButtonStyle}"/>
             <Button x:Name="Performance" Content="Performance" Style="{StaticResource SidebarButtonStyle}"/>
@@ -110,116 +111,111 @@ $XAML = @"
 $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]$XAML)
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
-# Ensure all UI elements are found
-$AISystemScanButton = $window.FindName("RunAIScan")
-if ($null -eq $AISystemScanButton) {
-    Write-Host "Error: RunAIScan button not found in XAML" -ForegroundColor Red
-    return
-}
-
-# Global variable to store the folder path for app installations
-$global:AppInstallFolder = "C:\DefaultFolder"
-
 # Function to call the ChatGPT API
 function Invoke-ChatGPT {
     param (
         [string]$Prompt
     )
 
-    $url = "http://127.0.0.1:5000/chatgpt"
+    $url = "http://127.0.0.1:5000/chatgpt"  # Update with your server's URL if different
     $body = @{
         prompt = $Prompt
     } | ConvertTo-Json
 
-    $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
-    return $response
+    try {
+        $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
+        return $response
+    } catch {
+        Write-Host "Error: $_"
+        return $null
+    }
+}
+# Additional functions used in the script
+function Remove-Bloatware {
+    param (
+        [string[]]$AppsToRemove
+    )
+    foreach ($app in $AppsToRemove) {
+        Get-AppxPackage -AllUsers | Where-Object Name -like "*$app*" | Remove-AppxPackage
+        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like "*$app*" | Remove-AppxProvisionedPackage -Online
+    }
 }
 
 # Function to perform AI System Scan
 function Perform-AISystemScan {
     $prompt = "Perform a system scan and provide recommendations for optimizing performance."
     $aiResponse = Invoke-ChatGPT -Prompt $prompt
-    $grade = "Good" # For demo purposes, replace this with actual logic to determine the grade
-    $color = "Green" # Adjust based on the grade
 
-    $window.FindName("OptimizationGrade").Text = "System Optimization Grade: $grade"
-    $window.FindName("OptimizationGrade").Foreground = $color
+    if ($aiResponse -ne $null) {
+        $grade = "Good" # For demo purposes, replace this with actual logic to determine the grade
+        $color = "Green" # Adjust based on the grade
+        $window.FindName("RunAIScan").Add_Click({ Perform-AISystemScan })
+        $window.FindName("OptimizationGrade").Text = "System Optimization Grade: $grade"
+        $window.FindName("OptimizationGrade").Foreground = $color
 
-    [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
-}
-
-# Ensure all required UI elements exist
-$requiredElements = @("OptimizePerformance", "OptimizeNetwork", "OneClickOptimize", "InstallPopularApps", "TestWiFiSpeed", "StressTestPC", "SetWallpaper", "AdvancedCleaning", "UpdateDrivers", "SortFiles", "CorrectTimeZone", "UndoOptimizations")
-foreach ($element in $requiredElements) {
-    if ($null -eq $window.FindName($element)) {
-        Write-Host "Error: $element button not found in XAML" -ForegroundColor Red
-        return
+        [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    } else {
+        [System.Windows.MessageBox]::Show("AI System Scan failed. Please try again.", "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
     }
 }
 
-# Function to download required tools
-function Download-Tools {
-    Write-Host "Downloading required tools..."
-
-    # Create the Tools directory if it doesn't exist
-    $toolsDir = "C:\Tools"
-    if (-not (Test-Path $toolsDir)) {
-        New-Item -Path $toolsDir -ItemType Directory
+function Optimize-Services {
+    param (
+        [string[]]$ServicesToDisable
+    )
+    foreach ($service in $ServicesToDisable) {
+        Set-Service -Name $service -StartupType Disabled
+        Stop-Service -Name $service
     }
-
-    # Download and install speedtest-cli
-    if (-not (Get-Command speedtest-cli -ErrorAction SilentlyContinue)) {
-        Write-Host "Installing speedtest-cli..."
-        if (-not (Get-Command pip -ErrorAction SilentlyContinue)) {
-            Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$toolsDir\get-pip.py"
-            python "$toolsDir\get-pip.py"
-            Remove-Item "$toolsDir\get-pip.py"
-        }
-        pip install speedtest-cli
-    }
-
-    # Download Prime95
-    if (-not (Test-Path "$toolsDir\Prime95\prime95.exe")) {
-        Write-Host "Downloading Prime95..."
-        $prime95Url = "https://www.mersenne.org/ftp_root/gimps/p95v303b6.win64.zip"
-        $prime95Zip = "$toolsDir\Prime95.zip"
-        $prime95Dir = "$toolsDir\Prime95"
-        Invoke-WebRequest -Uri $prime95Url -OutFile $prime95Zip
-        Expand-Archive -Path $prime95Zip -DestinationPath $prime95Dir
-        Remove-Item $prime95Zip
-    }
-
-    # Download FurMark
-    if (-not (Test-Path "$toolsDir\FurMark\FurMark.exe")) {
-        Write-Host "Downloading FurMark..."
-        $furMarkUrl = "https://geeks3d.com/furmark/downloads/FurMark_1.27.0.0_Setup.exe"
-        $furMarkInstaller = "$toolsDir\FurMarkSetup.exe"
-        Invoke-WebRequest -Uri $furMarkUrl -OutFile $furMarkInstaller
-        Start-Process $furMarkInstaller -ArgumentList "/VERYSILENT /NORESTART" -Wait
-        Remove-Item $furMarkInstaller
-    }
-
-    [System.Windows.MessageBox]::Show("All required tools are installed.", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 }
 
-# Function to download and set wallpaper
-function Set-Wallpaper {
-    Write-Host "Setting wallpaper..."
-    $wallpaperUrl = "https://your-repo.com/path/to/wallpaper.png"
-    $wallpaperPath = "C:\Tools\wallpaper.png"
-
-    if (-not (Test-Path $wallpaperPath)) {
-        Write-Host "Downloading wallpaper..."
-        Invoke-WebRequest -Uri $wallpaperUrl -OutFile $wallpaperPath
+function Clean-ScheduledTasks {
+    param (
+        [string[]]$TasksToDisable
+    )
+    foreach ($task in $TasksToDisable) {
+        Disable-ScheduledTask -TaskName $task
     }
+}
 
-    $code = @"
-[DllImport("user32.dll", CharSet = CharSet.Auto)]
-public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
-"@
-    Add-Type -MemberDefinition $code -Name "Win32" -Namespace "Wallpaper"
-    [Wallpaper.Win32]::SystemParametersInfo(0x0014, 0, $wallpaperPath, 0x0001)
-    [System.Windows.MessageBox]::Show("Wallpaper set successfully!", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+function Apply-RegistryTweaks {
+    param (
+        [hashtable]$Tweaks
+    )
+    foreach ($key in $Tweaks.Keys) {
+        Set-ItemProperty -Path $key -Name $Tweaks[$key].Name -Value $Tweaks[$key].Value
+    }
+}
+
+function Manage-StartupPrograms {
+    param (
+        [string[]]$ProgramsToDisable
+    )
+    foreach ($program in $ProgramsToDisable) {
+        Get-CimInstance -ClassName Win32_StartupCommand | Where-Object Name -like "*$program*" | Remove-CimInstance
+    }
+}
+
+function Optimize-WiFi {
+    param (
+        [string]$AdapterName
+    )
+    netsh wlan set hostednetwork mode=disallow
+    netsh wlan set hostednetwork mode=allow
+    Set-NetQosPolicy -Name "WiFiOptimization" -IPProtocolMatchCondition "IPv4" -AppPathNameMatchCondition "C:\Program Files (x86)\WiFiApp\WiFiApp.exe" -NetworkProfile All -ThrottleRateActionBitsPerSecond 100000000
+}
+
+function Optimize-TCPIP {
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "TcpAckFrequency" -Value 1 -PropertyType DWORD -Force
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "TCPNoDelay" -Value 1 -PropertyType DWORD -Force
+}
+
+function Optimize-NetworkSettings {
+    Set-Service -Name "PeerDistSvc" -StartupType Disabled
+    Set-Service -Name "HomeGroupListener" -StartupType Disabled
+    Set-Service -Name "HomeGroupProvider" -StartupType Disabled
+
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TCPIP6\Parameters" -Name "DisabledComponents" -Value 0xFFFFFFFF -PropertyType DWORD -Force
 }
 
 # Function to optimize performance
@@ -575,73 +571,3 @@ function Show-Settings {
 
 # Show the window
 $window.ShowDialog()
-
-# Additional functions used in the script
-function Remove-Bloatware {
-    param (
-        [string[]]$AppsToRemove
-    )
-    foreach ($app in $AppsToRemove) {
-        Get-AppxPackage -AllUsers | Where-Object Name -like "*$app*" | Remove-AppxPackage
-        Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like "*$app*" | Remove-AppxProvisionedPackage -Online
-    }
-}
-
-function Optimize-Services {
-    param (
-        [string[]]$ServicesToDisable
-    )
-    foreach ($service in $ServicesToDisable) {
-        Set-Service -Name $service -StartupType Disabled
-        Stop-Service -Name $service
-    }
-}
-
-function Clean-ScheduledTasks {
-    param (
-        [string[]]$TasksToDisable
-    )
-    foreach ($task in $TasksToDisable) {
-        Disable-ScheduledTask -TaskName $task
-    }
-}
-
-function Apply-RegistryTweaks {
-    param (
-        [hashtable]$Tweaks
-    )
-    foreach ($key in $Tweaks.Keys) {
-        Set-ItemProperty -Path $key -Name $Tweaks[$key].Name -Value $Tweaks[$key].Value
-    }
-}
-
-function Manage-StartupPrograms {
-    param (
-        [string[]]$ProgramsToDisable
-    )
-    foreach ($program in $ProgramsToDisable) {
-        Get-CimInstance -ClassName Win32_StartupCommand | Where-Object Name -like "*$program*" | Remove-CimInstance
-    }
-}
-
-function Optimize-WiFi {
-    param (
-        [string]$AdapterName
-    )
-    netsh wlan set hostednetwork mode=disallow
-    netsh wlan set hostednetwork mode=allow
-    Set-NetQosPolicy -Name "WiFiOptimization" -IPProtocolMatchCondition "IPv4" -AppPathNameMatchCondition "C:\Program Files (x86)\WiFiApp\WiFiApp.exe" -NetworkProfile All -ThrottleRateActionBitsPerSecond 100000000
-}
-
-function Optimize-TCPIP {
-    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "TcpAckFrequency" -Value 1 -PropertyType DWORD -Force
-    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "TCPNoDelay" -Value 1 -PropertyType DWORD -Force
-}
-
-function Optimize-NetworkSettings {
-    Set-Service -Name "PeerDistSvc" -StartupType Disabled
-    Set-Service -Name "HomeGroupListener" -StartupType Disabled
-    Set-Service -Name "HomeGroupProvider" -StartupType Disabled
-
-    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\TCPIP6\Parameters" -Name "DisabledComponents" -Value 0xFFFFFFFF -PropertyType DWORD -Force
-}
