@@ -6,22 +6,55 @@ Add-Type -AssemblyName PresentationCore
 $XAML = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Windows Optimization Tool" Height="700" Width="800">
+        Title="Windows Optimization Tool" Height="800" Width="1000" Background="#2D2D30" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#3E3E42"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderBrush" Value="#5E5E60"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#007ACC"/>
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect BlurRadius="15" ShadowDepth="0" Color="Cyan"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="TextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="10"/>
+        </Style>
+    </Window.Resources>
     <Grid Margin="10">
-        <Button x:Name="OptimizePerformance" Content="Optimize Performance" HorizontalAlignment="Left" VerticalAlignment="Top" Width="180" Height="50" Margin="10,10,0,0" />
-        <Button x:Name="OptimizeNetwork" Content="Optimize Network" HorizontalAlignment="Right" VerticalAlignment="Top" Width="180" Height="50" Margin="0,10,10,0" />
-        <Button x:Name="OneClickOptimize" Content="One-Click Optimization" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="360" Height="50" Margin="0,0,0,10" />
-        <Button x:Name="InstallPopularApps" Content="Install Popular Apps" HorizontalAlignment="Center" VerticalAlignment="Top" Width="360" Height="50" Margin="0,70,0,0" />
-        <Button x:Name="TestWiFiSpeed" Content="Test WiFi Speed" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="180" Height="50" Margin="10,0,0,80" />
-        <Button x:Name="StressTestPC" Content="Stress Test PC" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="180" Height="50" Margin="0,0,10,80" />
-        <Button x:Name="SetWallpaper" Content="Set Wallpaper" HorizontalAlignment="Center" VerticalAlignment="Top" Width="360" Height="50" Margin="0,140,0,0" />
-        <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="180" Height="50" Margin="10,0,0,160" />
-        <Button x:Name="UpdateDrivers" Content="Update Drivers" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="180" Height="50" Margin="0,0,10,160" />
-        <Button x:Name="BatteryOptimization" Content="Battery Optimization" HorizontalAlignment="Center" VerticalAlignment="Top" Width="360" Height="50" Margin="0,210,0,0" />
-        <Button x:Name="SystemHealth" Content="System Health Monitoring" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="180" Height="50" Margin="10,0,0,240" />
-        <Button x:Name="Backup" Content="Automatic Backup" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="180" Height="50" Margin="0,0,10,240" />
-        <Button x:Name="AISystemScan" Content="AI System Scan" HorizontalAlignment="Center" VerticalAlignment="Top" Width="360" Height="50" Margin="0,280,0,0" />
-
+        <TextBlock Text="Windows Optimization Tool" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="30" Foreground="White" Margin="0,10,0,0"/>
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button x:Name="OptimizePerformance" Content="Optimize Performance" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="OptimizeNetwork" Content="Optimize Network" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="OneClickOptimize" Content="One-Click Optimization" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="InstallPopularApps" Content="Install Popular Apps" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="TestWiFiSpeed" Content="Test WiFi Speed" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="StressTestPC" Content="Stress Test PC" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="SetWallpaper" Content="Set Wallpaper" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="AdvancedCleaning" Content="Advanced Cleaning" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="UpdateDrivers" Content="Update Drivers" Style="{StaticResource ButtonStyle}"/>
+            <Button x:Name="AISystemScan" Content="AI System Scan" Style="{StaticResource ButtonStyle}"/>
+        </StackPanel>
+        <TextBlock x:Name="WiFiSpeedResult" Style="{StaticResource TextStyle}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Hidden"/>
     </Grid>
 </Window>
 "@
@@ -29,6 +62,9 @@ $XAML = @"
 # Parse the XAML to create the GUI
 $reader = [System.Xml.XmlReader]::Create([System.IO.StringReader]$XAML)
 $window = [Windows.Markup.XamlReader]::Load($reader)
+
+# Global variable to store the folder path for app installations
+$global:AppInstallFolder = "C:\DefaultFolder"
 
 # Function to call the ChatGPT API
 function Invoke-ChatGPT {
@@ -51,9 +87,6 @@ function Perform-AISystemScan {
     $aiResponse = Invoke-ChatGPT -Prompt $prompt
     [System.Windows.MessageBox]::Show($aiResponse, "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 }
-
-# Global variable to store the folder path for app installations
-$global:AppInstallFolder = "C:\DefaultFolder"
 
 # Function to download required tools
 function Download-Tools {
@@ -103,7 +136,7 @@ function Download-Tools {
 # Function to download and set wallpaper
 function Set-Wallpaper {
     Write-Host "Setting wallpaper..."
-    $wallpaperUrl = "https://example.com/path/to/wallpaper.png"
+    $wallpaperUrl = "https://your-repo.com/path/to/wallpaper.png"
     $wallpaperPath = "C:\Tools\wallpaper.png"
 
     if (-not (Test-Path $wallpaperPath)) {
@@ -124,7 +157,7 @@ public static extern int SystemParametersInfo(int uAction, int uParam, string lp
 function Optimize-Performance {
     Write-Host "Optimizing performance..."
     Remove-Bloatware -AppsToRemove @("Xbox", "OneDrive", "GetHelp", "YourPhone", "MicrosoftSolitaireCollection", "Weather", "News", "Skype", "Spotify", "MixedRealityPortal", "Microsoft3DViewer", "MicrosoftOfficeHub", "MicrosoftPeople", "MicrosoftStickyNotes", "MicrosoftTips")
-    Optimize-Services -ServicesToDisable @("DiagTrack", "SysMain", "RetailDemo", "WSearch", "WMPNetworkSvc", "CDPSvc", "DoSvc", "DusmSvc", "MapsBroker", "PhoneSvc", "SharedAccess", "XboxGipSvc", "XboxNetApiSvc", "XboxSvc", "OneSyncSvc")
+    Optimize-Services -ServicesToDisable @("DiagTrack", "SysMain", "RetailDemo", "WSearch", "WMPNetworkSvc", "CDPSvc", "DoSvc", "DusmSvc", "MapsBroker", "PhoneSvc", "SharedAccess", "XboxGipSvc", "XboxNetApiSvc", "XboxSvc", "OneSyncSvc", "Fax", "TabletInputService", "PrintNotify")
     Clean-ScheduledTasks -TasksToDisable @("\Microsoft\Windows\UpdateOrchestrator\UpdateModel\USO_UxBroker_Display", "\Microsoft\Windows\Feedback\Siuf\DmClient", "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser", "\Microsoft\Windows\Autochk\Proxy", "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator")
 
     $registryTweaks = @{
@@ -152,8 +185,20 @@ function Optimize-Network {
 # Function to perform one-click optimization
 function OneClick-Optimize {
     Write-Host "Performing one-click optimization..."
+    Automatic-Backup
     Optimize-Performance
     Optimize-Network
+    Install-PopularApps
+    Advanced-Cleaning
+    Update-Drivers
+    Battery-Optimization
+    System-Health
+    Set-Wallpaper
+    Test-WiFiSpeed
+    Stress-TestPC
+    Disable-UnnecessaryServices
+    Disable-WindowsFeatures
+    Manage-RunningApplications
 }
 
 # Function to install popular apps using winget
@@ -199,7 +244,8 @@ function Test-WiFiSpeed {
         "Upload" = $result.upload / 1MB
         "Ping" = $result.ping
     }
-    [System.Windows.MessageBox]::Show("WiFi Speed Test Before Optimization: `nDownload: $($beforeSpeed.Download) Mbps `nUpload: $($beforeSpeed.Upload) Mbps `nPing: $($beforeSpeed.Ping) ms", "WiFi Speed Test", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
+    $window.FindName("WiFiSpeedResult").Text = "WiFi Speed Test Before Optimization: `nDownload: $($beforeSpeed.Download) Mbps `nUpload: $($beforeSpeed.Upload) Mbps `nPing: $($beforeSpeed.Ping) ms"
+    $window.FindName("WiFiSpeedResult").Visibility = "Visible"
 }
 
 # Function to stress test PC
@@ -262,6 +308,50 @@ function Automatic-Backup {
     [System.Windows.MessageBox]::Show("Automatic backup complete!", "Success", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
 }
 
+# Function to disable unnecessary services
+function Disable-UnnecessaryServices {
+    $servicesToDisable = @(
+        "DiagTrack", "SysMain", "RetailDemo", "WSearch", "WMPNetworkSvc", "CDPSvc",
+        "DoSvc", "DusmSvc", "MapsBroker", "PhoneSvc", "SharedAccess", "XboxGipSvc",
+        "XboxNetApiSvc", "XboxSvc", "OneSyncSvc", "Fax", "TabletInputService", "PrintNotify",
+        "dmwappushservice", "lfsvc", "WaaSMedicSvc", "DoSvc", "icssvc",
+        "MessagingService", "shpamsvc", "InstallService", "DiagTrack"
+    )
+
+    foreach ($service in $servicesToDisable) {
+        Set-Service -Name $service -StartupType Disabled
+        Stop-Service -Name $service -Force
+    }
+}
+
+# Function to disable unnecessary Windows features
+function Disable-WindowsFeatures {
+    $featuresToDisable = @(
+        "Printing-XPSServices-Features",
+        "WorkFolders-Client",
+        "MediaPlayback",
+        "FaxServicesClientPackage",
+        "Microsoft-Windows-Printing-InternetPrinting-Client"
+    )
+
+    foreach ($feature in $featuresToDisable) {
+        Disable-WindowsOptionalFeature -Online -FeatureName $feature -NoRestart
+    }
+}
+
+# Function to manage running applications
+function Manage-RunningApplications {
+    $applicationsToClose = @(
+        "MicrosoftTeams",
+        "OneDrive",
+        "SkypeApp"
+    )
+
+    foreach ($app in $applicationsToClose) {
+        Get-Process -Name $app -ErrorAction SilentlyContinue | Stop-Process -Force
+    }
+}
+
 # Event handlers for the buttons
 $window.FindName("OptimizePerformance").Add_Click({ Optimize-Performance })
 $window.FindName("OptimizeNetwork").Add_Click({ Optimize-Network })
@@ -272,10 +362,6 @@ $window.FindName("StressTestPC").Add_Click({ Stress-TestPC })
 $window.FindName("SetWallpaper").Add_Click({ Set-Wallpaper })
 $window.FindName("AdvancedCleaning").Add_Click({ Advanced-Cleaning })
 $window.FindName("UpdateDrivers").Add_Click({ Update-Drivers })
-$window.FindName("BatteryOptimization").Add_Click({ Battery-Optimization })
-$window.FindName("SystemHealth").Add_Click({ System-Health })
-$window.FindName("Backup").Add_Click({ Automatic-Backup })
-# Add a button in the UI for AI System Scan
 $window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
 
 # Show the window
