@@ -124,7 +124,10 @@ function Invoke-ChatGPT {
 
     try {
         $response = Invoke-RestMethod -Uri $url -Method Post -Body $body -ContentType "application/json"
-        return $response.text
+        if ($response.error) {
+            throw $response.error
+        }
+        return $response.response
     } catch {
         Write-Host "Error: $_"
         return $null
@@ -137,7 +140,7 @@ function Perform-AISystemScan {
     $aiResponse = Invoke-ChatGPT -Prompt $prompt
 
     if ($aiResponse -ne $null) {
-        $grade = "Good" # For demo purposes, replace this with actual logic to determine the grade
+        $grade = "Good" # Replace with actual logic to determine the grade
         $color = "Green" # Adjust based on the grade
 
         $window.FindName("OptimizationGrade").Text = "System Optimization Grade: $grade"
@@ -148,6 +151,7 @@ function Perform-AISystemScan {
         [System.Windows.MessageBox]::Show("AI System Scan failed. Please try again.", "AI System Scan", [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
     }
 }
+
 # Event handlers for the buttons
 $window.FindName("AISystemScan").Add_Click({ Perform-AISystemScan })
 
